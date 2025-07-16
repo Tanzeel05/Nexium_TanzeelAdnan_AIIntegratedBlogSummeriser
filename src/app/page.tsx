@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { translateToUrduApi } from "../../utils/translate";
 import { generateSummary } from "../../utils/summarize";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 export default function Page() {
   const [url, setUrl] = useState("");
@@ -44,12 +45,15 @@ export default function Page() {
       });
 
     } catch (err: unknown) {
-  if (err instanceof Error) {
-    setError(err.message);
-  } else {
-    setError("Something went wrong.");
-  }
-}};
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Something went wrong.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-black p-10 font-sans text-white">
@@ -74,36 +78,67 @@ export default function Page() {
           className="border border-purple-500 rounded-lg px-4 py-2 bg-black text-white focus:ring-2 focus:ring-blue-500"
         />
 
-        <Button
-          onClick={handleSummarise}
-          disabled={loading}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold hover:scale-105 hover:shadow-lg transition-transform rounded-lg"
-        >
-          {loading ? "Processing..." : "Summarise Now"}
-        </Button>
-
-        {error && (
-          <p className="text-red-500 font-semibold">{error}</p>
-        )}
-
-        {summary && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-            className="mt-6"
+        {/* Centered Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={handleSummarise}
+            disabled={loading || !url}
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold hover:scale-105 hover:shadow-lg transition-transform rounded-lg px-4 py-2"
           >
-            <Card className="bg-white/10 backdrop-blur-lg border border-purple-500 rounded-2xl shadow-xl text-left text-white">
-              <CardContent className="p-6 space-y-4">
-                <h2 className="font-bold text-2xl text-blue-400">📋 Summary</h2>
-                <p className="text-gray-100 leading-relaxed">{summary}</p>
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? "Processing..." : "Summarise Now"}
+          </Button>
+        </div>
 
-                <h2 className="font-bold text-2xl text-purple-400 mt-4">🌐 Urdu Translation</h2>
-                <p className="text-gray-100 leading-relaxed text-right">{translated}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+        {/* Engaging Loading Text */}
+        <AnimatePresence>
+          {loading && (
+            <motion.p
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4 }}
+              className="text-purple-400 font-semibold text-lg"
+            >
+              ✨ Summarising your blog... Please wait! ✨
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {error && (
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="text-red-500 font-semibold"
+            >
+              {error}
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {summary && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 0.4 }}
+              className="mt-6"
+            >
+              <Card className="bg-white/10 backdrop-blur-lg border border-purple-500 rounded-2xl shadow-xl text-left text-white hover:scale-[1.02] transition-transform">
+                <CardContent className="p-6 space-y-4">
+                  <h2 className="font-bold text-2xl text-blue-400">📋 Summary</h2>
+                  <p className="text-gray-100 leading-relaxed">{summary}</p>
+
+                  <h2 className="font-bold text-2xl text-purple-400 mt-4">🌐 Urdu Translation</h2>
+                  <p className="text-gray-100 leading-relaxed text-right">{translated}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </main>
   );
